@@ -1,7 +1,7 @@
 use std::{
     env,
-    fs::File,
-    io::{self, BufRead, BufReader, Lines},
+    fs::{create_dir_all, read_dir, File, ReadDir},
+    io::{self, BufRead, BufReader, Lines, Result, Write},
     path::Path,
     process::exit,
 };
@@ -43,16 +43,112 @@ impl TypeC {
     }
 }
 
+enum Command {
+    Src,
+    OutDir,
+    Name,
+}
+
+impl Command {
+    pub(crate) fn into_str(&self) -> &str {
+        match self {
+            Self::Src => "-src",
+            Self::OutDir => "-o",
+            Self::Name => "gx_md",
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() <= 1 {
-        eprintln!("No argument provided");
+    if args.len() <= 4 {
+        eprintln!("No argument provided.");
+        println!("Usage: gx_md -src [source dir] -o [output directory]");
         exit(1);
     }
 
-    let path = &args[1];
-    let content = read_line(path);
+    let mut src = String::new();
+    let mut out = String::new();
+    let mut prev: Command = Command::Name;
+
+    for arg in args {
+        if arg == Command::Src.into_str() {
+            prev = Command::Src;
+            continue;
+        } else if arg == Command::OutDir.into_str() {
+            prev = Command::OutDir;
+            continue;
+        } else if arg == Command::Name.into_str() {
+            prev = Command::Name;
+            continue;
+        }
+        match prev {
+            Command::Src => {
+                src = arg;
+            }
+            Command::OutDir => {
+                out = arg;
+            }
+            Command::Name => {}
+        }
+    }
+
+    let mut srcs: Vec<String> = vec![];
+    file_list(&mut srcs, &src);
+
+    for s in srcs {
+        match parse_into_file(&src, &s, &out) {
+            Ok(_) => println!("Success parse file: {}", &s),
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                exit(7)
+            }
+        }
+    }
+}
+
+fn file_list(v: &mut Vec<String>, src: &str) {
+    let files = read_dir(src);
+
+    let files = match files {
+        Ok(x) => x,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            exit(3);
+        }
+    };
+
+    file_extract(v, files, src)
+}
+
+fn file_extract(v: &mut Vec<String>, files: ReadDir, src: &str) {
+    for f in files {
+        let f = f.unwrap();
+        let ty = f.file_type();
+        let ty = match ty {
+            Ok(x) => x,
+            Err(e) => {
+                eprintln!("Error: {}", e);
+                continue;
+            }
+        };
+
+        if ty.is_dir() {
+            let r = read_dir(f.path().to_str().unwrap()).unwrap();
+            file_extract(v, r, src);
+        } else if ty.is_file() {
+            let file = f.path();
+            let file = file.to_str().unwrap();
+            if file.ends_with(".h") {
+                v.push(String::from(file));
+            }
+        }
+    }
+}
+
+fn parse_into_file(b: &str, p: &str, o: &str) -> Result<()> {
+    let mut content = read_line(p);
     let content = match content {
         Ok(x) => x,
         Err(e) => {
@@ -65,7 +161,81 @@ fn main() {
 
     let page = Page::new("title");
     page.set_content(Some(content));
-    println!("Page:\n{}", page.render());
+
+    let out_file = p.strip_prefix(b).unwrap();
+
+    let (s, out_file) = if out_file.contains("/") {
+        let a = out_file.split("/");
+        (Some(a.clone()), a.last())
+    } else if out_file.contains("\\") {
+        let a = out_file.split("\\");
+        (Some(a.clone()), a.last())
+    } else {
+        (None, Some(out_file))
+    };
+
+    let (out_file, out_side_file) = match out_file {
+        Some(x) => {
+            page.set_title(x);
+            let o = String::from("_");
+            let mut c = x.as_bytes().to_vec();
+            let b = c[0].to_ascii_uppercase();
+            c[0] = b;
+            let n = String::from_utf8(c).unwrap().replace(".h", ".md");
+            (o.clone() + &n, o + "Sidebar" + &n)
+        }
+        None => {
+            println!("Error: Cannot change file name");
+            exit(5);
+        }
+    };
+
+    let (out_file, out_side_file) = match s {
+        Some(x) => {
+            let s = x.collect::<Vec<&str>>();
+            let mut f = s.clone();
+            f[&s.len() - 1] = &out_file;
+            let mut b = s.clone();
+            b[&s.len() - 1] = &out_side_file;
+            (f.join("/"), b.join("/"))
+        }
+        None => {
+            println!("Error: Construct file output");
+            exit(5);
+        }
+    };
+
+    let out_dir = if o.ends_with("/") {
+        o.strip_suffix("/")
+    } else if o.ends_with("\\") {
+        o.strip_suffix("/")
+    } else {
+        Some(o)
+    };
+
+    let (out_file, out_side_file) = match out_dir {
+        Some(x) => (
+            String::from(x) + &out_file,
+            String::from(x) + &out_side_file,
+        ),
+        None => {
+            println!("Error: invalid output directory");
+            exit(5);
+        }
+    };
+
+    let path = Path::new(&out_file);
+    let dir = path.parent().unwrap();
+    create_dir_all(dir)?;
+    let mut file = File::create(&path)?;
+    println!("Write to {}", &out_file);
+    file.write_all(page.render_content().as_bytes())?;
+
+    println!("Write to {}", &out_side_file);
+    let path = Path::new(&out_side_file);
+    let mut file = File::create(&path)?;
+    file.write_all(page.render_side_bar().unwrap().as_bytes())?;
+    Ok(())
 }
 
 fn read_line<P>(path: P) -> io::Result<io::Lines<io::BufReader<File>>>

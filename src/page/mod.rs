@@ -24,6 +24,10 @@ impl Page {
         }
     }
 
+    pub(crate) fn set_title(&self, str: &str) {
+        *self.title.borrow_mut() = String::from(str);
+    }
+
     pub(crate) fn set_content(&self, content: Option<Content>) {
         *self.md.borrow_mut() = content;
     }
@@ -39,7 +43,7 @@ impl Page {
             Some(x) => x.render(),
             None => String::from(""),
         };
-        format!("{}\n{}", self.title.borrow(), content)
+        format!("## {}\n{}", self.title.borrow(), content)
     }
 
     pub(crate) fn render_side_bar(&self) -> Option<String> {
@@ -75,6 +79,6 @@ impl Renderer for Page {
             Some(x) => x.render(),
             None => String::from(""),
         };
-        format!("{}\n{}\n{}", self.title.borrow(), content, side_bar)
+        format!("## {}\n{}\n{}", self.title.borrow(), side_bar, content)
     }
 }
