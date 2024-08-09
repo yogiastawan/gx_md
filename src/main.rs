@@ -18,7 +18,7 @@ mod utils;
 mod tests;
 
 #[derive(PartialEq, Eq, Clone)]
-pub(crate) enum Type {
+pub(crate) enum TypeC {
     MainComment,
     Desc,
     Typedef,
@@ -29,13 +29,13 @@ pub(crate) enum Type {
     Unknown,
 }
 
-impl Type {
+impl TypeC {
     pub(crate) fn to_str(&self) -> &str {
         match self {
             Self::MainComment => "///!",
             Self::Desc => "//!",
             Self::Typedef => "typedef",
-            Type::TypedefStruct => "typedef struct",
+            Self::TypedefStruct => "typedef struct",
             Self::Struct => "struct",
             Self::Inc => "#include",
             _ => "",
@@ -85,7 +85,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
     let mut temp_inc: CIncludes = CIncludes::new();
 
     let mut desc: String = String::new();
-    let mut prev: Type = Type::Unknown;
+    let mut prev: TypeC = TypeC::Unknown;
 
     let mut str: String = String::new();
     let mut title = String::new();
@@ -93,20 +93,20 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
     for line in lines.flatten() {
         // if length is 0
         if line.len() <= 0 {
-            prev = Type::Unknown;
+            prev = TypeC::Unknown;
             desc.clear();
             continue;
         }
 
         // if start with ///!
-        if line.starts_with(Type::MainComment.to_str()) {
+        if line.starts_with(TypeC::MainComment.to_str()) {
             main_comment.append(&line[5..]);
-            prev = Type::MainComment;
+            prev = TypeC::MainComment;
             continue;
         }
         // if start with //!
-        else if line.starts_with(Type::Desc.to_str()) {
-            if prev != Type::Desc {
+        else if line.starts_with(TypeC::Desc.to_str()) {
+            if prev != TypeC::Desc {
                 desc.clear();
             }
             desc += &line[4..].trim();
@@ -114,24 +114,24 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
         }
         // other
         else {
-            if line.starts_with(Type::Inc.to_str()) || prev == Type::Inc {
+            if line.starts_with(TypeC::Inc.to_str()) || prev == TypeC::Inc {
                 // include header must be in one line.
                 if !line.contains("\"") {
                     desc.clear();
-                    prev = Type::Unknown;
+                    prev = TypeC::Unknown;
                     continue;
                 }
-                prev = Type::Inc;
+                prev = TypeC::Inc;
                 str += line.as_str();
                 temp_inc = parse_inc(&str);
                 str.clear();
-            } else if line.starts_with(Type::Typedef.to_str()) || prev == Type::Typedef {
-                prev = Type::Typedef;
+            } else if line.starts_with(TypeC::Typedef.to_str()) || prev == TypeC::Typedef {
+                prev = TypeC::Typedef;
                 str += line.as_str();
 
                 if line.contains("{") || line.contains("}") {
                     // Change to typedef struct
-                    prev = Type::TypedefStruct;
+                    prev = TypeC::TypedefStruct;
                     continue;
                 }
 
@@ -141,9 +141,10 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
 
                 (title, tem_str) = parse_typedef(&str);
                 str.clear();
-            } else if line.starts_with(Type::TypedefStruct.to_str()) || prev == Type::TypedefStruct
+            } else if line.starts_with(TypeC::TypedefStruct.to_str())
+                || prev == TypeC::TypedefStruct
             {
-                prev = Type::TypedefStruct;
+                prev = TypeC::TypedefStruct;
                 str += line.as_str();
                 if !line.contains("}") {
                     continue;
@@ -153,9 +154,9 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 }
                 (title, tem_str) = parse_ty_struct(&str);
                 str.clear()
-            } else if line.starts_with(Type::Struct.to_str()) || prev == Type::Struct {
+            } else if line.starts_with(TypeC::Struct.to_str()) || prev == TypeC::Struct {
                 // struct
-                prev = Type::Struct;
+                prev = TypeC::Struct;
                 str += line.as_str();
                 if !line.ends_with("};") {
                     continue;
@@ -167,10 +168,10 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 // if not function run inside if
                 if line.starts_with("//") || line.starts_with("#") {
                     str.clear();
-                    prev = Type::Unknown;
+                    prev = TypeC::Unknown;
                     continue;
                 }
-                prev = Type::Func;
+                prev = TypeC::Func;
                 str += line.as_str();
                 if !line.contains(");") {
                     continue;
@@ -182,7 +183,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
 
         // if is_complete {
         match prev {
-            Type::Inc => {
+            TypeC::Inc => {
                 let d = if desc.is_empty() {
                     None
                 } else {
@@ -190,9 +191,9 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 temp_inc.set_desc(d);
                 content.add_include(temp_inc.clone());
-                prev = Type::Unknown;
+                prev = TypeC::Unknown;
             }
-            Type::Typedef => {
+            TypeC::Typedef => {
                 let d = if desc.is_empty() {
                     None
                 } else {
@@ -200,9 +201,9 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
-                prev = Type::Unknown;
+                prev = TypeC::Unknown;
             }
-            Type::TypedefStruct => {
+            TypeC::TypedefStruct => {
                 let d = if desc.is_empty() {
                     None
                 } else {
@@ -210,9 +211,9 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
-                prev = Type::Unknown;
+                prev = TypeC::Unknown;
             }
-            Type::Struct => {
+            TypeC::Struct => {
                 let d = if desc.is_empty() {
                     None
                 } else {
@@ -220,9 +221,9 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
-                prev = Type::Unknown;
+                prev = TypeC::Unknown;
             }
-            Type::Func => {
+            TypeC::Func => {
                 let d = if desc.is_empty() {
                     None
                 } else {
@@ -232,10 +233,10 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 //TODO! use name funcction as title. and show function as code below title.
                 let fv = FieldView::new(d, Some(title.clone()), temp_func.clone());
                 content.add_func(fv);
-                prev = Type::Unknown;
+                prev = TypeC::Unknown;
             }
             _ => {
-                prev = Type::Unknown;
+                prev = TypeC::Unknown;
                 desc.clear();
             }
         }
