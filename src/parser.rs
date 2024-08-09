@@ -5,7 +5,6 @@ use crate::utils::{
 
 pub(crate) fn parse_inc(str: &str) -> CIncludes {
     let str = str.trim();
-    println!("STR inc: {}", str);
     let file = str.strip_prefix("#include").unwrap();
     let name = file.trim().replace("\"", "");
     let inc = CIncludes::new();
@@ -16,14 +15,11 @@ pub(crate) fn parse_inc(str: &str) -> CIncludes {
 pub(crate) fn parse_cstruct(str: &str) -> (String, CStruct) {
     let c_struct = CStruct::new();
     let str = str.trim().strip_prefix("struct").unwrap().trim();
-    println!("STR struct: {}", str);
     let name = &str[..str.find("{").unwrap()];
     let name = name.trim();
-    println!("STR name: {}", name);
     c_struct.set_name(name);
 
     let fields = str.strip_prefix(name).unwrap().trim();
-    println!("STR Fi: {}", fields);
     let fields = fields
         .strip_prefix("{")
         .unwrap()
@@ -35,11 +31,9 @@ pub(crate) fn parse_cstruct(str: &str) -> (String, CStruct) {
         .unwrap()
         .split(";")
         .collect::<Vec<&str>>();
-    println!("STR Fis: {}", field[0]);
 
     field.into_iter().for_each(|f| {
         let f = f.trim();
-        println!("f: {}", f);
         let x = f.split(" ").collect::<Vec<&str>>();
         let csf = CStructField::new(x[0], x[1]);
         c_struct.add_field(csf);
@@ -116,11 +110,10 @@ pub(crate) fn parse_ty_struct(str: &str) -> (String, CStruct) {
 pub(crate) fn parse_typedef(str: &str) -> (String, CStruct) {
     let cs = CStruct::new();
     let str = str.trim().strip_prefix("typedef").unwrap().trim();
-    println!("TY str: {}", str);
     let str = str.strip_prefix("struct").unwrap().trim();
     let str = str.split(" ").collect::<Vec<&str>>();
     let name = str[0].trim();
-    let alias = str[1].trim().strip_suffix(";").unwrap().trim_end();
+    let alias = str[1].strip_suffix(";").unwrap().trim_end();
     cs.set_name(name);
     cs.set_alias(alias);
     (alias.to_string(), cs)
