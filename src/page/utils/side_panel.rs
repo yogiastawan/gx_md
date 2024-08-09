@@ -23,11 +23,27 @@ impl SidePanel {
     pub(crate) fn add_obj(&self, l: Link) {
         self.objetcs_name.borrow_mut().push(l);
     }
+
+    pub(crate) fn get_objs(&self) -> Vec<Link> {
+        let a = self.objetcs_name.borrow();
+        a.clone()
+    }
     pub(crate) fn add_fun(&self, l: Link) {
         self.functions.borrow_mut().push(l);
     }
+
+    pub(crate) fn get_func(&self) -> Vec<Link> {
+        let a = self.functions.borrow();
+        a.clone()
+    }
+
     pub(crate) fn add_includes(&self, l: Link) {
         self.includes.borrow_mut().push(l);
+    }
+
+    pub(crate) fn get_incl(&self) -> Vec<Link> {
+        let a = self.includes.borrow();
+        a.clone()
     }
 }
 
