@@ -10,6 +10,7 @@ use crate::{
 
 use super::side_panel::SidePanel;
 
+#[derive(Clone)]
 pub(crate) struct Content {
     main: RefCell<Option<CommentMain>>,
     object: RefCell<Vec<FieldView<CStruct>>>,
