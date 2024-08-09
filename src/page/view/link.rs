@@ -1,5 +1,6 @@
 use crate::utils::IntoMd;
 
+#[derive(Clone)]
 pub(crate) struct Link {
     name: String,
     url: String,

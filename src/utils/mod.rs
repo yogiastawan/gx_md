@@ -11,6 +11,7 @@ pub(crate) trait IntoMd {
 }
 
 // when start with ///!
+#[derive(Clone)]
 pub(crate) struct CommentMain {
     content: RefCell<Vec<String>>,
 }

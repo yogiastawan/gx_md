@@ -14,7 +14,7 @@ pub(crate) trait IntoViewAnchor {
 #[derive(Clone)]
 pub(crate) struct FieldView<T>
 where
-    T: IntoMd,
+    T: IntoMd + Clone,
 {
     subtitle: RefCell<Option<String>>,
     desc: RefCell<Option<String>>,
@@ -23,7 +23,7 @@ where
 
 impl<T> FieldView<T>
 where
-    T: IntoMd,
+    T: IntoMd + Clone,
 {
     pub(crate) fn new(desc: Option<String>, title: Option<String>, field: T) -> Self {
         FieldView {
@@ -32,9 +32,24 @@ where
             field: RefCell::new(field),
         }
     }
+
+    pub(crate) fn get_title(&self) -> Option<String> {
+        let a = self.subtitle.borrow();
+        a.clone()
+    }
+
+    pub(crate) fn get_desc(&self) -> Option<String> {
+        let a = self.desc.borrow();
+        a.clone()
+    }
+
+    pub(crate) fn get_field(&self) -> T {
+        let a = self.field.borrow();
+        a.clone()
+    }
 }
 
-impl<T: IntoMd> IntoViewAnchor for FieldView<T> {
+impl<T: IntoMd + Clone> IntoViewAnchor for FieldView<T> {
     fn into_view(&self) -> String {
         let field = self.field.borrow().into_md();
         let title = self.subtitle.borrow();
