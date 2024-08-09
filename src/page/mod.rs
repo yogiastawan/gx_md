@@ -28,7 +28,7 @@ impl Page {
         *self.md.borrow_mut() = content;
     }
 
-    pub(crate) fn add_side_bar(&self, panel: Option<SidePanel>) {
+    pub(crate) fn set_side_bar(&self, panel: Option<SidePanel>) {
         *self.left_side.borrow_mut() = panel;
     }
 }
