@@ -11,9 +11,11 @@ use parser::{parse_cstruct, parse_function, parse_inc, parse_ty_struct, parse_ty
 use utils::{c_function::CFunction, c_includes::CIncludes, c_struct::CStruct, CommentMain};
 
 mod page;
+mod parser;
 mod utils;
 
-mod parser;
+#[cfg(test)]
+mod tests;
 
 #[derive(PartialEq, Eq, Clone)]
 pub(crate) enum Type {
@@ -115,6 +117,8 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
             if line.starts_with(Type::Inc.to_str()) || prev == Type::Inc {
                 // include header must be in one line.
                 if !line.contains("\"") {
+                    desc.clear();
+                    prev = Type::Unknown;
                     continue;
                 }
                 prev = Type::Inc;
@@ -124,9 +128,17 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
             } else if line.starts_with(Type::Typedef.to_str()) || prev == Type::Typedef {
                 prev = Type::Typedef;
                 str += line.as_str();
+
+                if line.contains("{") || line.contains("}") {
+                    // Change to typedef struct
+                    prev = Type::TypedefStruct;
+                    continue;
+                }
+
                 if !line.ends_with(";") {
                     continue;
                 }
+
                 (title, tem_str) = parse_typedef(&str);
                 str.clear();
             } else if line.starts_with(Type::TypedefStruct.to_str()) || prev == Type::TypedefStruct
@@ -152,12 +164,18 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 str.clear();
             } else {
                 // function
-                prev = Type::Func;
-                str += line.as_str();
-                if !line.ends_with(");") {
+                // if not function run inside if
+                if line.starts_with("//") || line.starts_with("#") {
+                    str.clear();
+                    prev = Type::Unknown;
                     continue;
                 }
-                temp_func = parse_function(&str);
+                prev = Type::Func;
+                str += line.as_str();
+                if !line.contains(");") {
+                    continue;
+                }
+                (title, temp_func) = parse_function(&str);
                 str.clear();
             }
         }
@@ -172,6 +190,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 temp_inc.set_desc(d);
                 content.add_include(temp_inc.clone());
+                prev = Type::Unknown;
             }
             Type::Typedef => {
                 let d = if desc.is_empty() {
@@ -181,6 +200,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
+                prev = Type::Unknown;
             }
             Type::TypedefStruct => {
                 let d = if desc.is_empty() {
@@ -190,6 +210,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
+                prev = Type::Unknown;
             }
             Type::Struct => {
                 let d = if desc.is_empty() {
@@ -199,6 +220,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
+                prev = Type::Unknown;
             }
             Type::Func => {
                 let d = if desc.is_empty() {
@@ -208,13 +230,16 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 };
 
                 //TODO! use name funcction as title. and show function as code below title.
-                let fv = FieldView::new(d, None, temp_func.clone());
+                let fv = FieldView::new(d, Some(title.clone()), temp_func.clone());
                 content.add_func(fv);
+                prev = Type::Unknown;
             }
-            _ => {}
+            _ => {
+                prev = Type::Unknown;
+                desc.clear();
+            }
         }
-        prev = Type::Unknown;
-        desc.clear();
+
         // is_complete = false;
         // }
     }
