@@ -31,6 +31,31 @@ impl Page {
     pub(crate) fn set_side_bar(&self, panel: Option<SidePanel>) {
         *self.left_side.borrow_mut() = panel;
     }
+
+    pub(crate) fn render_content(&self) -> String {
+        let contn = self.md.borrow();
+
+        let content = match contn.as_ref() {
+            Some(x) => x.render(),
+            None => String::from(""),
+        };
+        format!("{}\n{}", self.title.borrow(), content)
+    }
+
+    pub(crate) fn render_side_bar(&self) -> Option<String> {
+        let side_bar = self.left_side.borrow();
+        let contn = self.md.borrow();
+
+        let side_bar = match side_bar.as_ref() {
+            Some(x) => x.render(),
+            None => match contn.as_ref() {
+                Some(x) => x.create_side_panel().render(),
+                None => String::new(),
+            },
+        };
+
+        Some(side_bar)
+    }
 }
 
 impl Renderer for Page {
