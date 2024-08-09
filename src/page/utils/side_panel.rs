@@ -50,7 +50,8 @@ impl SidePanel {
 impl Renderer for SidePanel {
     fn render(&self) -> String {
         let obj = self.objetcs_name.borrow();
-        let obj = if obj.len() > 0 {
+        let obj_len = obj.len();
+        let obj = if obj_len > 0 {
             obj.iter()
                 .map(|x| x.into_md())
                 .collect::<Vec<String>>()
@@ -60,7 +61,8 @@ impl Renderer for SidePanel {
         };
 
         let func = self.functions.borrow();
-        let func = if func.len() > 0 {
+        let func_len = func.len();
+        let func = if func_len > 0 {
             func.iter()
                 .map(|x| x.into_md())
                 .collect::<Vec<String>>()
@@ -69,8 +71,9 @@ impl Renderer for SidePanel {
             String::from("")
         };
 
-        let incl = self.objetcs_name.borrow();
-        let incl = if incl.len() > 0 {
+        let incl = self.includes.borrow();
+        let incl_len = incl.len();
+        let incl = if incl_len > 0 {
             incl.iter()
                 .map(|x| x.into_md())
                 .collect::<Vec<String>>()
@@ -80,8 +83,8 @@ impl Renderer for SidePanel {
         };
 
         format!(
-            "**Objects**\n{}\n**Functions**\n{}\n**Includes**\n{}",
-            obj, func, incl
+            "#### **Objects ({})**\n{}\n#### **Functions ({})**\n{}\n#### **Includes ({})**\n{}",
+            obj_len, obj, func_len, func, incl_len, incl
         )
     }
 }

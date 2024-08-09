@@ -42,15 +42,15 @@ impl IntoMd for CStruct {
             .collect::<Vec<String>>();
 
         let fields = match fields.len() > 0 {
-            true => fields.join("\n\t"),
-            false => String::from("\n\t*PRIVATE FIELD*"),
+            true => fields.join("\n\t\t"),
+            false => String::from("*PRIVATE FIELD*"),
         };
         let alias = self.alias.borrow();
         let alias = match alias.as_ref() {
-            Some(x) => format!("\ntypedef {} {};", name, x),
+            Some(x) => format!("\n\ttypedef {} {};", name, x),
             None => String::new(),
         };
 
-        format!("{}{{{}\n}}{}", name, fields, alias)
+        format!("\t{}{{\n\t\t{}\n\t}};{}", name, fields, alias)
     }
 }

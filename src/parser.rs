@@ -47,8 +47,12 @@ pub(crate) fn parse_function(str: &str) -> (String, CFunction) {
 
     let str = str.trim();
     let unit = &str[..str.find(" ").unwrap()];
+    func.set_unit(unit);
+
     let str = str.strip_prefix(unit).unwrap().trim_start();
     let name = str[..str.find("(").unwrap()].trim_end();
+    func.set_name(name);
+
     let params = str.strip_prefix(name).unwrap().trim_start();
     let params = params
         .strip_prefix("(")
@@ -61,11 +65,11 @@ pub(crate) fn parse_function(str: &str) -> (String, CFunction) {
     for p in params {
         let p = p.trim();
         let p = p.split(" ").collect::<Vec<&str>>();
-        let unit = p[0];
+        let unit = p[0].trim();
         let name = if p.len() < 2 {
             None
         } else {
-            Some(p[1].to_string())
+            Some(p[1].trim().to_string())
         };
         let cp = CFunctionParams::new(unit, name);
         func.add_param(cp);
@@ -97,7 +101,7 @@ pub(crate) fn parse_ty_struct(str: &str) -> (String, CStruct) {
         c_struct.add_field(csf);
     });
 
-    let alias = &str[str.find("}").unwrap()..]
+    let alias = &str[1 + str.find("}").unwrap()..]
         .trim()
         .strip_suffix(";")
         .unwrap()

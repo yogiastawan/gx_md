@@ -17,6 +17,6 @@ impl Link {
 
 impl IntoMd for Link {
     fn into_md(&self) -> String {
-        format!("[{}]({})", self.name, self.url)
+        format!("* [{}](#{})", self.name, self.url)
     }
 }

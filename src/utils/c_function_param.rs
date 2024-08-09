@@ -21,10 +21,10 @@ impl IntoMd for CFunctionParams {
     fn into_md(&self) -> String {
         let name = self.name.borrow();
         let name = match name.as_ref() {
-            Some(x) => x,
-            None => "",
+            Some(x) => format!(" {}", x),
+            None => String::new(),
         };
 
-        format!("{} {}", self.unit.borrow(), name)
+        format!("{}{}", self.unit.borrow(), name)
     }
 }

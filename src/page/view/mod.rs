@@ -54,14 +54,14 @@ impl<T: IntoMd + Clone> IntoViewAnchor for FieldView<T> {
         let field = self.field.borrow().into_md();
         let title = self.subtitle.borrow();
         let (f_code, title) = match title.as_ref() {
-            Some(x) => (&format!("\n```c\n{}\n```", &field), x),
+            Some(x) => (&format!("\n\t```c\n{}\n\t```", &field), x),
             None => (&String::from(""), &field),
         };
-        let url = format!("#### {}", &title);
+        let url = format!("#### **{}**", &title);
 
         let desc = self.desc.borrow();
         let desc = match desc.as_ref() {
-            Some(x) => format!("\n{}", x),
+            Some(x) => format!("\n\n\t{}", x),
             None => String::new(),
         };
         format!("* {}{}{}", url, &f_code, desc)

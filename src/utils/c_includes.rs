@@ -34,15 +34,10 @@ impl IntoViewAnchor for CIncludes {
     fn into_view(&self) -> String {
         let desc = self.desc.borrow();
         let desc = match desc.as_ref() {
-            Some(x) => format!("\n{}", x),
+            Some(x) => format!("\\\n\t{}", x),
             None => String::new(),
         };
-        format!(
-            "\n* [{}]({}){}",
-            self.name.borrow(),
-            self.url.borrow(),
-            desc
-        )
+        format!("* [{}](#{}){}", self.name.borrow(), self.url.borrow(), desc)
     }
 
     fn create_anchor(&self) -> Option<crate::page::view::link::Link> {

@@ -6,7 +6,7 @@ use std::{
     process::exit,
 };
 
-use page::{utils::content::Content, view::FieldView};
+use page::{utils::content::Content, view::FieldView, Page, Renderer};
 use parser::{parse_cstruct, parse_function, parse_inc, parse_ty_struct, parse_typedef};
 use utils::{c_function::CFunction, c_includes::CIncludes, c_struct::CStruct, CommentMain};
 
@@ -51,7 +51,7 @@ fn main() {
         exit(1);
     }
 
-    let path = "path";
+    let path = &args[1];
     let content = read_line(path);
     let content = match content {
         Ok(x) => x,
@@ -61,9 +61,11 @@ fn main() {
         }
     };
 
-    for line in content.flatten() {
-        println!("{}", line);
-    }
+    let content = line_parser(content);
+
+    let page = Page::new("title");
+    page.set_content(Some(content));
+    println!("Page:\n{}", page.render());
 }
 
 fn read_line<P>(path: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -78,7 +80,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
     let main_comment = CommentMain::new();
     let content: Content = Content::new();
 
-    // let mut is_complete = false;
+    let mut is_f_main = true;
 
     let mut temp_func: CFunction = CFunction::new();
     let mut tem_str: CStruct = CStruct::new();
@@ -93,6 +95,9 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
     for line in lines.flatten() {
         // if length is 0
         if line.len() <= 0 {
+            if prev == TypeC::MainComment {
+                is_f_main = false;
+            }
             prev = TypeC::Unknown;
             desc.clear();
             continue;
@@ -100,28 +105,37 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
 
         // if start with ///!
         if line.starts_with(TypeC::MainComment.to_str()) {
+            if is_f_main == false {
+                continue;
+            }
             main_comment.append(&line[5..]);
             prev = TypeC::MainComment;
             continue;
         }
         // if start with //!
         else if line.starts_with(TypeC::Desc.to_str()) {
+            is_f_main = false;
             if prev != TypeC::Desc {
                 desc.clear();
             }
+            prev = TypeC::Desc;
+            desc += " ";
             desc += &line[4..].trim();
             continue;
         }
         // other
         else {
-            if line.starts_with(TypeC::Inc.to_str()) || prev == TypeC::Inc {
+            is_f_main = false;
+            if line.starts_with(TypeC::Inc.to_str()) {
                 // include header must be in one line.
-                if !line.contains("\"") {
+                prev = TypeC::Inc;
+
+                if line.contains("<") {
                     desc.clear();
                     prev = TypeC::Unknown;
+                    str.clear();
                     continue;
                 }
-                prev = TypeC::Inc;
                 str += line.as_str();
                 temp_inc = parse_inc(&str);
                 str.clear();
@@ -181,13 +195,13 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
             }
         }
 
-        // if is_complete {
+        // on complete
         match prev {
             TypeC::Inc => {
                 let d = if desc.is_empty() {
                     None
                 } else {
-                    Some(desc.clone())
+                    Some(desc.clone().trim().to_string())
                 };
                 temp_inc.set_desc(d);
                 content.add_include(temp_inc.clone());
@@ -197,7 +211,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 let d = if desc.is_empty() {
                     None
                 } else {
-                    Some(desc.clone())
+                    Some(desc.clone().trim().to_string())
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
@@ -207,7 +221,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 let d = if desc.is_empty() {
                     None
                 } else {
-                    Some(desc.clone())
+                    Some(desc.clone().trim().to_string())
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
@@ -217,7 +231,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 let d = if desc.is_empty() {
                     None
                 } else {
-                    Some(desc.clone())
+                    Some(desc.clone().trim().to_string())
                 };
                 let fv = FieldView::new(d, Some(title.clone()), tem_str.clone());
                 content.add_object(fv);
@@ -227,7 +241,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                 let d = if desc.is_empty() {
                     None
                 } else {
-                    Some(desc.clone())
+                    Some(desc.clone().trim().to_string())
                 };
 
                 //TODO! use name funcction as title. and show function as code below title.
@@ -237,13 +251,11 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
             }
             _ => {
                 prev = TypeC::Unknown;
-                desc.clear();
             }
         }
 
-        // is_complete = false;
-        // }
+        desc.clear();
     }
-
+    content.set_main(Some(main_comment));
     content
 }

@@ -39,8 +39,13 @@ impl IntoMd for CFunction {
             .iter()
             .map(|x| x.into_md())
             .collect::<Vec<String>>();
-        let params = params.join(",");
+        let params = params.join(", ");
 
-        format!("{} {}({})", self.unit.borrow(), self.name.borrow(), params)
+        format!(
+            "\t{} {}({});",
+            self.unit.borrow(),
+            self.name.borrow(),
+            params
+        )
     }
 }

@@ -31,35 +31,21 @@ impl Page {
     pub(crate) fn set_side_bar(&self, panel: Option<SidePanel>) {
         *self.left_side.borrow_mut() = panel;
     }
-
-    fn create_panel(&self) {
-        let ctn = self.md.borrow();
-        let side_panel = if let Some(x) = ctn.as_ref() {
-            Some(x.create_side_panel())
-        } else {
-            None
-        };
-
-        self.set_side_bar(side_panel);
-    }
 }
 
 impl Renderer for Page {
     fn render(&self) -> String {
         let side_bar = self.left_side.borrow();
-
-        if let None = side_bar.as_ref() {
-            self.create_panel();
-        }
-
-        let side_bar = self.left_side.borrow();
+        let contn = self.md.borrow();
 
         let side_bar = match side_bar.as_ref() {
             Some(x) => x.render(),
-            None => String::new(),
+            None => match contn.as_ref() {
+                Some(x) => x.create_side_panel().render(),
+                None => String::new(),
+            },
         };
 
-        let contn = self.md.borrow();
         let content = match contn.as_ref() {
             Some(x) => x.render(),
             None => String::from(""),
