@@ -75,6 +75,6 @@ impl<T: IntoMd + Clone> IntoViewAnchor for FieldView<T> {
             None => &field,
         };
         let url = format!("{}", title.to_lowercase().replace(" ", "-"));
-        Some(Link::new(title, &url))
+        Some(Link::new(title, &url, false))
     }
 }

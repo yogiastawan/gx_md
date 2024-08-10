@@ -1,14 +1,41 @@
-use crate::utils::{
-    c_function::CFunction, c_function_param::CFunctionParams, c_includes::CIncludes,
-    c_struct::CStruct, c_struct_field::CStructField,
+use std::process::exit;
+
+use crate::{
+    create_file_name,
+    utils::{
+        c_function::CFunction, c_function_param::CFunctionParams, c_includes::CIncludes,
+        c_struct::CStruct, c_struct_field::CStructField,
+    },
 };
 
-pub(crate) fn parse_inc(str: &str) -> CIncludes {
+pub(crate) fn parse_inc(str: &str, home: &str) -> CIncludes {
     let str = str.trim();
     let file = str.strip_prefix("#include").unwrap();
     let name = file.trim().replace("\"", "");
     let inc = CIncludes::new();
     inc.set_name(&name);
+    let is_home = {
+        let sep = if home.contains("/") { "/" } else { "\\" };
+        let home_file = match home.split(sep).last() {
+            Some(x) => x,
+            None => home,
+        };
+        home_file == name
+    };
+    let url = {
+        if is_home {
+            String::from("Home")
+        } else {
+            match create_file_name(&name).strip_suffix(".md") {
+                Some(x) => x.to_owned(),
+                None => {
+                    eprintln!("Error: failed create url for file include {}", &name);
+                    exit(9);
+                }
+            }
+        }
+    };
+    inc.set_url(&url);
     inc
 }
 

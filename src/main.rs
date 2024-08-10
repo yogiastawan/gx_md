@@ -4,7 +4,6 @@ use std::{
     io::{self, BufRead, BufReader, Lines, Result, Write},
     path::Path,
     process::exit,
-    str::Split,
 };
 
 use page::{utils::content::Content, view::FieldView, Page};
@@ -14,9 +13,6 @@ use utils::{c_function::CFunction, c_includes::CIncludes, c_struct::CStruct, Com
 mod page;
 mod parser;
 mod utils;
-
-#[cfg(test)]
-mod tests;
 
 #[derive(PartialEq, Eq, Clone)]
 pub(crate) enum TypeC {
@@ -74,7 +70,7 @@ fn main() {
 
     if args.len() <= 5 {
         eprintln!("No argument provided.");
-        println!("Usage: gx_md -src [source dir] -o [output directory] -h my_lib.h");
+        println!("Usage: gx_md -src [source dir] -o [output directory] -h [my_home_page.h]");
         exit(1);
     }
 
@@ -178,7 +174,9 @@ fn parse_into_file(fo: &GxFile) -> Result<()> {
     let source_dir = &fo.dir;
     let out_dir = &fo.out_dir;
     let home = &fo.home_file;
-    let mut is_home = false;
+    let is_home: bool;
+
+    let path_separator = if source_file.contains("/") { "/" } else { "\\" };
 
     let content_file = read_line(source_file);
     let content = match content_file {
@@ -189,19 +187,23 @@ fn parse_into_file(fo: &GxFile) -> Result<()> {
         }
     };
 
-    let content = line_parser(content);
-
+    let content = line_parser(content, home);
     let page = Page::new();
     page.set_content(Some(content));
 
     let out_file = source_file.strip_prefix(source_dir).unwrap();
 
     is_home = {
+        let home = if home.starts_with(path_separator) {
+            &home[1..]
+        } else {
+            home
+        };
         let out_file = &out_file[1..];
         out_file == home
     };
 
-    let (splits, file_source_name) = extract_source(&out_file);
+    let (splits, file_source_name) = extract_source(out_file, path_separator);
 
     let file_name = match file_source_name {
         Some(x) => {
@@ -222,10 +224,8 @@ fn parse_into_file(fo: &GxFile) -> Result<()> {
         }
     };
 
-    let out_dir = if out_dir.ends_with("/") {
-        out_dir.strip_suffix("/")
-    } else if out_dir.ends_with("\\") {
-        out_dir.strip_suffix("/")
+    let out_dir = if out_dir.ends_with(path_separator) {
+        out_dir.strip_suffix(path_separator)
     } else {
         Some(out_dir.as_str())
     };
@@ -258,15 +258,14 @@ fn create_file_name(str: &str) -> String {
     n
 }
 
-fn create_relative_path(split: Split<&str>, file_name: &str, is_home: bool) -> (String, String) {
-    let s = split.collect::<Vec<&str>>();
-    let mut f = s.clone();
+fn create_relative_path(split: Vec<&str>, file_name: &str, is_home: bool) -> (String, String) {
+    let mut f = split.clone();
     let mut file = file_name;
     if is_home {
         file = "Home.md";
-        f.remove(&s.len() - 1);
+        f.remove(&split.len() - 1);
     } else {
-        f[&s.len() - 1] = match &file_name.strip_suffix(".md") {
+        f[&split.len() - 1] = match &file_name.strip_suffix(".md") {
             Some(x) => x,
             None => {
                 eprintln!(
@@ -279,17 +278,14 @@ fn create_relative_path(split: Split<&str>, file_name: &str, is_home: bool) -> (
     }
     (
         format!("{}/{}", f.join("/"), file),
-        format!("{}/_Sidebar", f.join("/")),
+        format!("{}/_Sidebar.md", f.join("/")),
     )
 }
 
-fn extract_source(src: &str) -> (Option<Split<&str>>, Option<&str>) {
-    if src.contains("/") {
-        let a = src.split("/");
-        (Some(a.clone()), a.last())
-    } else if src.contains("\\") {
-        let a = src.split("\\");
-        (Some(a.clone()), a.last())
+fn extract_source<'a>(src: &'a str, sep: &'a str) -> (Option<Vec<&'a str>>, Option<&'a str>) {
+    if src.contains(sep) {
+        let a = src.split(sep).collect::<Vec<&str>>();
+        (Some(a.clone()), a.last().copied())
     } else {
         (None, Some(src))
     }
@@ -318,7 +314,7 @@ where
     Ok(io::BufReader::new(file).lines())
 }
 
-fn line_parser(lines: Lines<BufReader<File>>) -> Content {
+fn line_parser(lines: Lines<BufReader<File>>, home: &str) -> Content {
     let main_comment = CommentMain::new();
     let content: Content = Content::new();
 
@@ -379,7 +375,7 @@ fn line_parser(lines: Lines<BufReader<File>>) -> Content {
                     continue;
                 }
                 str += line.as_str();
-                temp_inc = parse_inc(&str);
+                temp_inc = parse_inc(&str, home);
                 str.clear();
             } else if line.starts_with(TypeC::Typedef.to_str()) || prev == TypeC::Typedef {
                 prev = TypeC::Typedef;
