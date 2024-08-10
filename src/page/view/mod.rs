@@ -33,20 +33,20 @@ where
         }
     }
 
-    pub(crate) fn get_title(&self) -> Option<String> {
-        let a = self.subtitle.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_title(&self) -> Option<String> {
+    //     let a = self.subtitle.borrow();
+    //     a.clone()
+    // }
 
-    pub(crate) fn get_desc(&self) -> Option<String> {
-        let a = self.desc.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_desc(&self) -> Option<String> {
+    //     let a = self.desc.borrow();
+    //     a.clone()
+    // }
 
-    pub(crate) fn get_field(&self) -> T {
-        let a = self.field.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_field(&self) -> T {
+    //     let a = self.field.borrow();
+    //     a.clone()
+    // }
 }
 
 impl<T: IntoMd + Clone> IntoViewAnchor for FieldView<T> {

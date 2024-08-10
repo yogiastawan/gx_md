@@ -32,37 +32,37 @@ impl Content {
         *self.main.borrow_mut() = main;
     }
 
-    pub(crate) fn get_main(&self) -> Option<CommentMain> {
-        let a = self.main.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_main(&self) -> Option<CommentMain> {
+    //     let a = self.main.borrow();
+    //     a.clone()
+    // }
 
     pub(crate) fn add_object(&self, obj: FieldView<CStruct>) {
         self.object.borrow_mut().push(obj);
     }
 
-    pub(crate) fn get_objects(&self) -> Vec<FieldView<CStruct>> {
-        let a = self.object.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_objects(&self) -> Vec<FieldView<CStruct>> {
+    //     let a = self.object.borrow();
+    //     a.clone()
+    // }
 
     pub(crate) fn add_func(&self, fun: FieldView<CFunction>) {
         self.func.borrow_mut().push(fun);
     }
 
-    pub(crate) fn get_func(&self) -> Vec<FieldView<CFunction>> {
-        let a = self.func.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_func(&self) -> Vec<FieldView<CFunction>> {
+    //     let a = self.func.borrow();
+    //     a.clone()
+    // }
 
     pub(crate) fn add_include(&self, inc: CIncludes) {
         self.incl.borrow_mut().push(inc);
     }
 
-    pub(crate) fn get_include(&self) -> Vec<CIncludes> {
-        let a = self.incl.borrow();
-        a.clone()
-    }
+    // pub(crate) fn get_include(&self) -> Vec<CIncludes> {
+    //     let a = self.incl.borrow();
+    //     a.clone()
+    // }
 
     pub(crate) fn create_side_panel(&self) -> SidePanel {
         let sp = SidePanel::new();

@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, cell::RefCell};
+use std::cell::RefCell;
 
 use super::{c_struct_field::CStructField, IntoMd};
 

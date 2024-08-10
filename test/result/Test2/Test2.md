@@ -1,4 +1,5 @@
 ## test2.h
+*/test2.h*\
 This is main commnet
 used to test
 llf;;=>>>>>>>>
