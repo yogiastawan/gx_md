@@ -23,11 +23,12 @@ pub(crate) fn parse_into_file(fo: &GxFile) -> Result<()> {
 
     let path_separator = if source_file.contains("/") { "/" } else { "\\" };
 
+    println!("::> Reading file source.");
     let content_file = read_line(source_file);
     let content = match content_file {
         Ok(x) => x,
         Err(e) => {
-            eprintln!("Error: {}", e);
+            eprintln!("Reading failed.\nError: {}.", e);
             exit(2);
         }
     };
@@ -71,7 +72,7 @@ pub(crate) fn parse_into_file(fo: &GxFile) -> Result<()> {
             create_file_name(x)
         }
         None => {
-            println!("Error: Cannot change file name");
+            eprintln!("Error: Cannot change file name.");
             exit(5);
         }
     };
@@ -79,7 +80,7 @@ pub(crate) fn parse_into_file(fo: &GxFile) -> Result<()> {
     let (page_out_rel, side_out_rel) = match splits {
         Some(x) => create_relative_path(x, &file_name, is_home),
         None => {
-            println!("Error: Construct file output");
+            eprintln!("Error: Construct file output.");
             exit(5);
         }
     };
@@ -96,11 +97,11 @@ pub(crate) fn parse_into_file(fo: &GxFile) -> Result<()> {
             (a.clone() + &page_out_rel, a + &side_out_rel)
         }
         None => {
-            println!("Error: invalid output directory");
+            eprintln!("Error: invalid output directory.");
             exit(5);
         }
     };
-
+    println!("::> Writing file documentation.");
     create_file(&page, &out_page, &out_side)
 }
 
@@ -111,7 +112,7 @@ pub(crate) fn create_file_name(str: &str) -> String {
     let n = match String::from_utf8(c) {
         Ok(x) => x.replace(".h", ".md"),
         Err(e) => {
-            eprintln!("Error: Cannot change .h to .md.\n\t Reason: {}", e);
+            eprintln!("Error: Cannot change .h to .md.\n\t Reason: {}.", e);
             exit(8);
         }
     };
@@ -133,7 +134,7 @@ pub(crate) fn create_relative_path(
             Some(x) => x,
             None => {
                 eprintln!(
-                    "Error: File extension is not .md\n Cannot create subdirectory for {}",
+                    "Error: File extension is not .md\n Cannot create subdirectory for {}.",
                     file
                 );
                 exit(8);
@@ -163,10 +164,8 @@ pub(crate) fn create_file(page: &Page, out_page: &str, out_sidebar: &str) -> Res
     let dir = path.parent().unwrap();
     create_dir_all(dir)?;
     let mut file = File::create(&path)?;
-    println!("Write to {}", &out_page);
     file.write_all(page.render_content().as_bytes())?;
 
-    println!("Write to {}", &out_sidebar);
     let path = Path::new(&out_sidebar);
     let mut file = File::create(&path)?;
     file.write_all(page.render_side_bar().unwrap().as_bytes())?;

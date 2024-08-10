@@ -73,9 +73,11 @@ fn main() {
     };
 
     let mut srcs: Vec<String> = vec![];
+    println!(":> List all files in directory {}.", src);
     file_list(&mut srcs, &src);
 
     for s in srcs {
+        println!(":> Start Documenting file: {}.", &s);
         let indexed_file = GxFile {
             dir: src.clone(),
             file: s.clone(),
@@ -83,9 +85,9 @@ fn main() {
             home_file: home.clone(),
         };
         match parse_into_file(&indexed_file) {
-            Ok(_) => println!("Success parse file: {}", &s),
+            Ok(_) => println!("::> Documentation for file {} : Success.", &s),
             Err(e) => {
-                eprintln!("Error: {}", e);
+                eprintln!("Documentation file: {} is failed.\nError: {}.", &s, e);
                 exit(7)
             }
         }
