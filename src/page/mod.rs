@@ -16,9 +16,9 @@ pub(crate) struct Page {
 }
 
 impl Page {
-    pub(crate) fn new(title: &str) -> Self {
+    pub(crate) fn new() -> Self {
         Page {
-            title: RefCell::new(String::from(title)),
+            title: RefCell::new(String::new()),
             md: RefCell::new(None),
             left_side: RefCell::new(None),
         }
