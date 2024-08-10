@@ -191,7 +191,22 @@ fn parse_into_file(fo: &GxFile) -> Result<()> {
     let page = Page::new();
     page.set_content(Some(content));
 
+    let source_dir = {
+        let s_o = if source_dir.contains(path_separator) {
+            source_dir.strip_suffix(path_separator)
+        } else {
+            Some(source_dir.as_str())
+        };
+
+        match s_o {
+            Some(x) => x,
+            None => source_dir,
+        }
+    };
+
     let out_file = source_file.strip_prefix(source_dir).unwrap();
+
+    page.set_path_src(out_file);
 
     is_home = {
         let home = if home.starts_with(path_separator) {

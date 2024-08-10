@@ -11,6 +11,7 @@ pub(crate) trait Renderer {
 
 pub(crate) struct Page {
     title: RefCell<String>,
+    path_src: RefCell<String>,
     md: RefCell<Option<Content>>,
     left_side: RefCell<Option<SidePanel>>,
 }
@@ -19,6 +20,7 @@ impl Page {
     pub(crate) fn new() -> Self {
         Page {
             title: RefCell::new(String::new()),
+            path_src: RefCell::new(String::new()),
             md: RefCell::new(None),
             left_side: RefCell::new(None),
         }
@@ -32,18 +34,23 @@ impl Page {
         *self.md.borrow_mut() = content;
     }
 
-    pub(crate) fn set_side_bar(&self, panel: Option<SidePanel>) {
-        *self.left_side.borrow_mut() = panel;
+    pub(crate) fn set_path_src(&self, path: &str) {
+        *self.path_src.borrow_mut() = String::from(path);
     }
 
     pub(crate) fn render_content(&self) -> String {
         let contn = self.md.borrow();
 
         let content = match contn.as_ref() {
-            Some(x) => x.render(),
-            None => String::from(""),
+            Some(x) => format!("\\\n{}", x.render()),
+            None => String::new(),
         };
-        format!("## {}\n{}", self.title.borrow(), content)
+        format!(
+            "## {}\n*{}*{}",
+            self.title.borrow(),
+            self.path_src.borrow(),
+            content
+        )
     }
 
     pub(crate) fn render_side_bar(&self) -> Option<String> {
