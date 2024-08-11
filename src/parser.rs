@@ -277,7 +277,7 @@ pub(crate) fn parse_cstruct(str: &str) -> (String, CStruct) {
     field.into_iter().for_each(|f| {
         let f = f.trim();
         let x = f.split(" ").collect::<Vec<&str>>();
-        let csf = CStructField::new(x[0], x[1]);
+        let csf = CStructField::new(x[1], x[0]);
         c_struct.add_field(csf);
     });
 
