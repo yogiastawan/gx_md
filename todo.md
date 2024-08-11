@@ -10,3 +10,6 @@
 - [x] Add horizontal line below subtitle.
 - [ ] Add link for field to source code.
 - [ ] Add link to path source
+- [ ] Separate typedef from struct
+- [ ] Use trait create_title instead of passing title on parse.
+- [ ] Use trait IntoMd in c_includes by separate create_anchor to another trait.
