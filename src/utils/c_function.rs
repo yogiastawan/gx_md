@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::{c_function_param::CFunctionParams, IntoMd};
+use super::{c_function_param::CFunctionParams, IntoMd, TitleMd};
 
 #[derive(Clone, PartialEq, Eq)]
 pub(crate) struct CFunction {
@@ -47,5 +47,11 @@ impl IntoMd for CFunction {
             self.name.borrow(),
             params
         )
+    }
+}
+
+impl TitleMd for CFunction {
+    fn create_title(&self) -> String {
+        self.name.borrow().to_owned()
     }
 }

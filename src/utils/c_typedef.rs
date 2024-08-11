@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::IntoMd;
+use super::{IntoMd, TitleMd};
 
 #[derive(Clone)]
 pub(crate) struct CTypedef {
@@ -28,5 +28,12 @@ impl CTypedef {
 impl IntoMd for CTypedef {
     fn into_md(&self) -> String {
         format!("typedef {} {};", self.name.borrow(), self.alias.borrow())
+    }
+}
+
+impl TitleMd for CTypedef {
+    fn create_title(&self) -> String {
+        let a = self.alias.borrow();
+        a.clone()
     }
 }

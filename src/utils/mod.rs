@@ -11,6 +11,10 @@ pub(crate) trait IntoMd {
     fn into_md(&self) -> String;
 }
 
+pub(crate) trait TitleMd {
+    fn create_title(&self) -> String;
+}
+
 // when start with ///!
 #[derive(Clone)]
 pub(crate) struct CommentMain {

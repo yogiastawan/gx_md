@@ -2,6 +2,8 @@ use std::cell::RefCell;
 
 use crate::page::view::{link::Link, IntoViewAnchor};
 
+use super::TitleMd;
+
 #[derive(Clone)]
 pub(crate) struct CIncludes {
     name: RefCell<String>,
@@ -44,5 +46,11 @@ impl IntoViewAnchor for CIncludes {
         let name = self.name.borrow();
         let url = self.url.borrow();
         Some(Link::new(name.as_ref(), url.as_ref(), true))
+    }
+}
+
+impl TitleMd for CIncludes {
+    fn create_title(&self) -> String {
+        self.name.borrow().to_owned()
     }
 }

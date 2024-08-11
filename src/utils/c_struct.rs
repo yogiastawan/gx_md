@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use super::{c_struct_field::CStructField, IntoMd};
+use super::{c_struct_field::CStructField, IntoMd, TitleMd};
 
 #[derive(Clone, PartialEq, Eq)]
 pub(crate) struct CStruct {
@@ -52,5 +52,19 @@ impl IntoMd for CStruct {
         };
 
         format!("\t{}{{\n\t\t{}\n\t}};{}", name, fields, alias)
+    }
+}
+
+impl TitleMd for CStruct {
+    fn create_title(&self) -> String {
+        let alias = self.alias.borrow();
+        let title = match alias.as_ref() {
+            Some(x) => x,
+            None => {
+                let name = self.name.borrow();
+                &name.clone()
+            }
+        };
+        title.to_owned()
     }
 }
