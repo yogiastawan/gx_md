@@ -1,16 +1,21 @@
-## test2.h
-*/test2.h*\
+# test2.h
+*/test2.h*
+
+---
+
 This is main commnet
 used to test
 llf;;=>>>>>>>>
-
 ### **Objects:**
+
+---
+
 * #### **struct Obj**
 	```c
 	struct Obj{
-		a int;
-		b int;
-		c int;
+		int a;
+		int b;
+		int c;
 	};
 	```
 * #### **Jbo**
@@ -31,8 +36,10 @@ llf;;=>>>>>>>>
 	};
 	typedef struct _Obj_ TestObj;
 	```
-
 ### **Functions:**
+
+---
+
 * #### **test_function**
 	```c
 	int test_function(int a, Obj *obj);
@@ -45,8 +52,10 @@ llf;;=>>>>>>>>
 	```
 
 	this is test function with one args
-
 ### **Includes:**
+
+---
+
 * [header0.h](Header0)
 * [test.h](Home)\
 	this is include 1 file in

@@ -42,11 +42,11 @@ impl Page {
         let contn = self.md.borrow();
 
         let content = match contn.as_ref() {
-            Some(x) => format!("\\\n{}", x.render()),
+            Some(x) => format!("\n{}", x.render()),
             None => String::new(),
         };
         format!(
-            "## {}\n*{}*{}",
+            "# {}\n*{}*\n\n---\n{}",
             self.title.borrow(),
             self.path_src.borrow(),
             content

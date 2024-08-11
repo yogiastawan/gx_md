@@ -95,16 +95,16 @@ impl Renderer for Content {
         let main = self.main.borrow();
         let main = match main.as_ref() {
             Some(x) => x.into_md(),
-            None => String::from(""),
+            None => String::new(),
         };
 
         let obj = self.object.borrow();
         let obj = if obj.len() > 0 {
             let s: Vec<String> = obj.iter().map(|o| o.into_view()).collect::<Vec<String>>();
             let s = s.join("\n");
-            format!("\n### **Objects:**\n{}", s)
+            format!("\n### **Objects:**\n\n---\n\n{}", s)
         } else {
-            String::from("")
+            String::new()
         };
 
         let fun = self.func.borrow();
@@ -112,9 +112,9 @@ impl Renderer for Content {
         let fun = if fun.len() > 0 {
             let s: Vec<String> = fun.iter().map(|o| o.into_view()).collect::<Vec<String>>();
             let s = s.join("\n");
-            format!("\n### **Functions:**\n{}", s)
+            format!("\n### **Functions:**\n\n---\n\n{}", s)
         } else {
-            String::from("")
+            String::new()
         };
 
         let inc = self.incl.borrow();
@@ -122,11 +122,11 @@ impl Renderer for Content {
         let inc = if inc.len() > 0 {
             let s: Vec<String> = inc.iter().map(|o| o.into_view()).collect::<Vec<String>>();
             let s = s.join("\n");
-            format!("\n### **Includes:**\n{}", s)
+            format!("\n### **Includes:**\n\n---\n\n{}", s)
         } else {
-            String::from("")
+            String::new()
         };
 
-        format!("{}\n{}\n{}\n{}", main, obj, fun, inc)
+        format!("{}{}{}{}", main, obj, fun, inc)
     }
 }
