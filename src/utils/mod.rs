@@ -1,5 +1,7 @@
 use std::cell::RefCell;
 
+use crate::page::view::link::Link;
+
 pub(crate) mod c_function;
 pub(crate) mod c_function_param;
 pub(crate) mod c_includes;
@@ -13,6 +15,10 @@ pub(crate) trait IntoMd {
 
 pub(crate) trait TitleMd {
     fn create_title(&self) -> String;
+}
+
+pub(crate) trait AnchorMd {
+    fn create_anchor(&self) -> Option<Link>;
 }
 
 // when start with ///!

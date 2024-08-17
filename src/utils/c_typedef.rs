@@ -1,6 +1,8 @@
 use std::cell::RefCell;
 
-use super::{IntoMd, TitleMd};
+use crate::page::view::link::Link;
+
+use super::{AnchorMd, IntoMd, TitleMd};
 
 #[derive(Clone)]
 pub(crate) struct CTypedef {
@@ -35,5 +37,13 @@ impl TitleMd for CTypedef {
     fn create_title(&self) -> String {
         let a = self.alias.borrow();
         a.clone()
+    }
+}
+
+impl AnchorMd for CTypedef {
+    fn create_anchor(&self) -> Option<Link> {
+        let title = self.create_title();
+        let url = format!("#{}", title.to_lowercase().replace(" ", "-"));
+        Some(Link::new(&title, &url, false))
     }
 }

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use link::Link;
 
-use crate::utils::IntoMd;
+use crate::utils::{AnchorMd, IntoMd, TitleMd};
 
 pub(crate) mod link;
 
@@ -14,7 +14,7 @@ pub(crate) trait IntoViewAnchor {
 #[derive(Clone)]
 pub(crate) struct FieldView<T>
 where
-    T: IntoMd + Clone,
+    T: IntoMd + TitleMd + AnchorMd + Clone,
 {
     subtitle: RefCell<Option<String>>,
     desc: RefCell<Option<String>>,
@@ -23,7 +23,7 @@ where
 
 impl<T> FieldView<T>
 where
-    T: IntoMd + Clone,
+    T: IntoMd + TitleMd + AnchorMd + Clone,
 {
     pub(crate) fn new(desc: Option<String>, title: Option<String>, field: T) -> Self {
         FieldView {
@@ -49,13 +49,16 @@ where
     // }
 }
 
-impl<T: IntoMd + Clone> IntoViewAnchor for FieldView<T> {
+impl<T> IntoViewAnchor for FieldView<T>
+where
+    T: IntoMd + TitleMd + AnchorMd + Clone,
+{
     fn into_view(&self) -> String {
         let field = self.field.borrow().into_md();
         let title = self.subtitle.borrow();
         let (f_code, title) = match title.as_ref() {
-            Some(x) => (&format!("\n\t```c\n{}\n\t```", &field), x),
-            None => (&String::from(""), &field),
+            Some(x) => (&format!("\n\t\n{}\n\t", &field), x),
+            None => (&String::from(""), &self.field.borrow().create_title()),
         };
         let url = format!("#### **{}**", &title);
 
@@ -68,13 +71,6 @@ impl<T: IntoMd + Clone> IntoViewAnchor for FieldView<T> {
     }
 
     fn create_anchor(&self) -> Option<Link> {
-        let field = self.field.borrow().into_md();
-        let title = self.subtitle.borrow();
-        let title = match title.as_ref() {
-            Some(x) => x,
-            None => &field,
-        };
-        let url = format!("{}", title.to_lowercase().replace(" ", "-"));
-        Some(Link::new(title, &url, false))
+        self.field.borrow().create_anchor()
     }
 }

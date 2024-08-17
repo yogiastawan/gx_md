@@ -15,7 +15,7 @@ pub(crate) struct Content {
     main: RefCell<Option<CommentMain>>,
     object: RefCell<Vec<FieldView<CStruct>>>,
     func: RefCell<Vec<FieldView<CFunction>>>,
-    incl: RefCell<Vec<CIncludes>>,
+    incl: RefCell<Vec<FieldView<CIncludes>>>,
 }
 
 impl Content {
@@ -55,7 +55,7 @@ impl Content {
     //     a.clone()
     // }
 
-    pub(crate) fn add_include(&self, inc: CIncludes) {
+    pub(crate) fn add_include(&self, inc: FieldView<CIncludes>) {
         self.incl.borrow_mut().push(inc);
     }
 

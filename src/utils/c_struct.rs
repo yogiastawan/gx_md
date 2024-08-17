@@ -1,6 +1,8 @@
 use std::cell::RefCell;
 
-use super::{c_struct_field::CStructField, IntoMd, TitleMd};
+use crate::page::view::link::Link;
+
+use super::{c_struct_field::CStructField, AnchorMd, IntoMd, TitleMd};
 
 #[derive(Clone, PartialEq, Eq)]
 pub(crate) struct CStruct {
@@ -66,5 +68,13 @@ impl TitleMd for CStruct {
             }
         };
         title.to_owned()
+    }
+}
+
+impl AnchorMd for CStruct {
+    fn create_anchor(&self) -> Option<crate::page::view::link::Link> {
+        let title = self.create_title();
+        let url = format!("#{}", title.to_lowercase().replace(" ", "-"));
+        Some(Link::new(&title, &url, false))
     }
 }
