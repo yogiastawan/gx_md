@@ -5,7 +5,7 @@ use crate::{
         view::{FieldView, IntoViewAnchor},
         Renderer,
     },
-    utils::{c_function::CFunction, c_includes::CIncludes, c_struct::CStruct, CommentMain, IntoMd},
+    utils::{c_function::CFunction, c_includes::CIncludes, c_object::CObject, CommentMain, IntoMd},
 };
 
 use super::side_panel::SidePanel;
@@ -13,7 +13,7 @@ use super::side_panel::SidePanel;
 #[derive(Clone)]
 pub(crate) struct Content {
     main: RefCell<Option<CommentMain>>,
-    object: RefCell<Vec<FieldView<CStruct>>>,
+    object: RefCell<Vec<FieldView<CObject>>>,
     func: RefCell<Vec<FieldView<CFunction>>>,
     incl: RefCell<Vec<FieldView<CIncludes>>>,
 }
@@ -37,7 +37,7 @@ impl Content {
     //     a.clone()
     // }
 
-    pub(crate) fn add_object(&self, obj: FieldView<CStruct>) {
+    pub(crate) fn add_object(&self, obj: FieldView<CObject>) {
         self.object.borrow_mut().push(obj);
     }
 

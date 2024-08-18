@@ -5,9 +5,8 @@ use crate::page::view::link::Link;
 pub(crate) mod c_function;
 pub(crate) mod c_function_param;
 pub(crate) mod c_includes;
-pub(crate) mod c_struct;
-pub(crate) mod c_struct_field;
-pub(crate) mod c_typedef;
+
+pub(crate) mod c_object;
 
 pub(crate) trait IntoMd {
     fn into_md(&self) -> String;
