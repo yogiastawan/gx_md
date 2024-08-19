@@ -16,20 +16,18 @@ pub(crate) struct FieldView<T>
 where
     T: IntoMd + TitleMd + AnchorMd + Clone,
 {
-    subtitle: RefCell<Option<String>>,
     desc: RefCell<Option<String>>,
-    field: RefCell<T>,
+    object: RefCell<T>,
 }
 
 impl<T> FieldView<T>
 where
     T: IntoMd + TitleMd + AnchorMd + Clone,
 {
-    pub(crate) fn new(desc: Option<String>, title: Option<String>, field: T) -> Self {
+    pub(crate) fn new(desc: Option<String>, obj: T) -> Self {
         FieldView {
-            subtitle: RefCell::new(title),
             desc: RefCell::new(desc),
-            field: RefCell::new(field),
+            object: RefCell::new(obj),
         }
     }
 
@@ -54,23 +52,20 @@ where
     T: IntoMd + TitleMd + AnchorMd + Clone,
 {
     fn into_view(&self) -> String {
-        let field = self.field.borrow().into_md();
-        let title = self.subtitle.borrow();
-        let (f_code, title) = match title.as_ref() {
-            Some(x) => (&format!("\n\t\n{}\n\t", &field), x),
-            None => (&String::from(""), &self.field.borrow().create_title()),
-        };
-        let url = format!("#### **{}**", &title);
+        let object = self.object.borrow().into_md();
+        let code_obj = format!("\n\t```c\n{}\n\t```\n", &object);
+
+        let heading = format!("#### **{}**", &self.object.borrow().create_title());
 
         let desc = self.desc.borrow();
         let desc = match desc.as_ref() {
             Some(x) => format!("\n\n\t{}", x),
             None => String::new(),
         };
-        format!("* {}{}{}", url, &f_code, desc)
+        format!("* {}{}{}", heading, code_obj, desc)
     }
 
     fn create_anchor(&self) -> Option<Link> {
-        self.field.borrow().create_anchor()
+        self.object.borrow().create_anchor()
     }
 }

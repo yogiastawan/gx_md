@@ -1,8 +1,9 @@
 use std::cell::RefCell;
 
-use utils::{content::Content, side_panel::SidePanel};
+use {content::Content, side_panel::SidePanel};
 
-pub(crate) mod utils;
+pub(crate) mod content;
+pub(crate) mod side_panel;
 pub(crate) mod view;
 
 pub(crate) trait Renderer {
