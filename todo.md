@@ -15,3 +15,4 @@
 - [x] Use trait IntoMd in c_includes by separate create_anchor to another trait.
 - [ ] Separate C Enum from C Object
 - [x] Replace CStruct & CTypedef with CObject
+- [ ] Add custom style
